@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { bulkUserAction, createVip, deleteUser, exportUsers, getOptions, getUsers, toggleUserBlock, updateVerification, type VipPayload } from "@/lib/api";
+import { bulkUserAction, createVip, deleteUser, exportUsers, getUsers, toggleUserBlock, updateVerification, type VipPayload } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { cn, errorMessage, initials } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
   const [pitch, setPitch] = useState("");
   const [rateAmount, setRateAmount] = useState("");
   const [rateUnit, setRateUnit] = useState("Per day");
+  const [vipBySkill, setVipBySkill] = useState("");
   const [tradesmanListOpen, setTradesmanListOpen] = useState(false);
   const [tradesmanSearch, setTradesmanSearch] = useState("");
   const tradesmenQuery = useQuery({
@@ -31,9 +32,12 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
     queryFn: () => getUsers({ type: "tradesman", page: 1, limit: 1000 }),
     enabled: open,
   });
-  const optionsQuery = useQuery({ queryKey: ["options"], queryFn: getOptions, enabled: open });
   const selectedTradesman = tradesmenQuery.data?.users.find((user) => user._id === selectedId);
   const profile = selectedTradesman?.tradesmanProfile;
+  const selectableSkills = Array.from(new Set(
+    [profile?.mainSkill, ...(profile?.extraSkills || [])]
+      .filter((skill): skill is string => Boolean(skill)),
+  ));
   const normalizedSearch = tradesmanSearch.trim().toLowerCase();
   const filteredTradesmen = tradesmenQuery.data?.users.filter((user) => {
     if (!normalizedSearch) return true;
@@ -50,6 +54,7 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
       setPitch("");
       setRateAmount("");
       setRateUnit("Per day");
+      setVipBySkill("");
       setTradesmanListOpen(false);
       setTradesmanSearch("");
       onOpenChange(false);
@@ -63,6 +68,7 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
       setPitch("");
       setRateAmount("");
       setRateUnit("Per day");
+      setVipBySkill("");
       setTradesmanListOpen(false);
       setTradesmanSearch("");
     }
@@ -71,11 +77,13 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
 
   function selectTradesman(userId: string) {
     const tradesman = tradesmenQuery.data?.users.find((user) => user._id === userId);
-    const typicalRate = tradesman?.tradesmanProfile?.typicalRate;
+    const tradesmanProfile = tradesman?.tradesmanProfile;
+    const typicalRate = tradesmanProfile?.typicalRate;
     setSelectedId(userId);
-    setPitch(tradesman?.tradesmanProfile?.pitch || "");
+    setPitch(tradesmanProfile?.pitch || "");
     setRateAmount(typicalRate?.amount === undefined ? "" : String(typicalRate.amount));
     setRateUnit(typicalRate?.unit || "Per day");
+    setVipBySkill(tradesmanProfile?.vipBySkill || (tradesmanProfile?.isVip ? tradesmanProfile.mainSkill || "" : ""));
     setTradesmanListOpen(false);
     setTradesmanSearch("");
   }
@@ -162,10 +170,10 @@ function VipDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open:
             <Field label="Home Area">
               <Input name="homeArea" required disabled={!selectedTradesman} defaultValue={profile?.homeArea || ""} placeholder="San Fernando" />
             </Field>
-            <Field label="Main Skill">
-              <select name="mainSkill" required disabled={!selectedTradesman} defaultValue={profile?.mainSkill || ""} className="form-control">
+            <Field label="VIP member added by skill">
+              <select name="vipBySkill" required disabled={!selectedTradesman || !selectableSkills.length} value={vipBySkill} onChange={(event) => setVipBySkill(event.target.value)} className="form-control">
                 <option value="" disabled>Select a skill</option>
-                {optionsQuery.data?.skills.map((skill) => <option key={skill}>{skill}</option>)}
+                {selectableSkills.map((skill) => <option key={skill}>{skill}</option>)}
               </select>
             </Field>
           </div>
@@ -276,6 +284,7 @@ export default function UsersPage() {
               <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                 <DetailItem label="Main skill">{selected.tradesmanProfile.mainSkill || "Not provided"}</DetailItem>
                 <DetailItem label="Extra skills">{selected.tradesmanProfile.extraSkills?.length ? selected.tradesmanProfile.extraSkills.join(", ") : "None"}</DetailItem>
+                <DetailItem label="VIP skill">{selected.tradesmanProfile.vipBySkill || (selected.tradesmanProfile.isVip ? selected.tradesmanProfile.mainSkill : "Not provided")}</DetailItem>
                 <DetailItem label="Home area">{selected.tradesmanProfile.homeArea || "Not provided"}</DetailItem>
                 <DetailItem label="Travel range">{selected.tradesmanProfile.travelRange || "Not provided"}</DetailItem>
                 <DetailItem label="Typical rate">{selected.tradesmanProfile.typicalRate ? `TT$ ${selected.tradesmanProfile.typicalRate.amount} · ${selected.tradesmanProfile.typicalRate.unit}` : "Not provided"}</DetailItem>

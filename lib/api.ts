@@ -75,7 +75,7 @@ export async function deleteUser(userId: string) {
 
 export type VipPayload = {
   userId: string; homeArea: string;
-  travelRange: string; pitch: string; rateAmount: number; rateUnit: string; mainSkill: string;
+  travelRange: string; pitch: string; rateAmount: number; rateUnit: string; vipBySkill: string;
 };
 
 export async function createVip(payload: VipPayload) {

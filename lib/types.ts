@@ -39,6 +39,7 @@ export type TradesmanProfile = {
   _id: string;
   mainSkill?: string;
   extraSkills?: string[];
+  vipBySkill?: string;
   homeArea?: string;
   travelRange?: string;
   pitch?: string;
