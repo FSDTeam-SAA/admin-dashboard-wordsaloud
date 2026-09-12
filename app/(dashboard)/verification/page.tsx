@@ -24,7 +24,7 @@ import {
   bulkVerificationAction,
   bulkUserAction,
   deleteUser,
-  getUsers,
+  getVerificationQueue,
   updateVerification,
 } from "@/lib/api";
 import type { User } from "@/lib/types";
@@ -37,7 +37,7 @@ const nameOf = (user: User) =>
 
 export default function VerificationPage() {
   const client = useQueryClient();
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState<"pending" | "verified" | "rejected">("pending");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
@@ -50,14 +50,16 @@ export default function VerificationPage() {
   const query = useQuery({
     queryKey: ["verification", status, search, page],
     queryFn: () =>
-      getUsers({
-        type: "tradesman",
+      getVerificationQueue({
+        status,
         page,
         limit,
         search,
-        verificationStatus: status,
       }),
     placeholderData: keepPreviousData,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
   const refresh = () => {
     setSelected([]);
@@ -148,7 +150,7 @@ export default function VerificationPage() {
         <select
           value={status}
           onChange={(event) => {
-            setStatus(event.target.value);
+            setStatus(event.target.value as "pending" | "verified" | "rejected");
             setPage(1);
             setSelected([]);
           }}

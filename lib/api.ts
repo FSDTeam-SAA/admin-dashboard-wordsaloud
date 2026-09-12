@@ -63,6 +63,11 @@ export async function getUsers(params: { type: string; page: number; limit: numb
   return { users: data.data, meta: data.meta as PaginationMeta };
 }
 
+export async function getVerificationQueue(params: { status: "pending" | "verified" | "rejected"; page: number; limit: number; search?: string }) {
+  const { data } = await api.get<ApiResponse<User[]>>("/admin/verifications", { params });
+  return { users: data.data, meta: data.meta as PaginationMeta };
+}
+
 export async function toggleUserBlock(userId: string) {
   const { data } = await api.patch<ApiResponse<User>>(`/admin/users/${userId}/toggle-block`);
   return data;
