@@ -143,6 +143,7 @@ export type Category = {
   order: number;
   isActive: boolean;
   tradesmanCount: number;
+  vipCount: number;
   isNew?: boolean;
   newUntil?: string | null;
 };
