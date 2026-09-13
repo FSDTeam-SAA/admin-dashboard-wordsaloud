@@ -29,7 +29,7 @@ const localDateTime = (value?: string | null) =>
   value ? new Date(value).toISOString().slice(0, 16) : "";
 
 async function validateAdvertisementMedia(file: File) {
-  if (!file.size) return;
+  if (!file.size) throw new Error("The selected media file is empty");
   if (file.size > 20 * 1024 * 1024) throw new Error("Media must be 20 MB or smaller");
   if (!["image/jpeg", "image/png", "video/mp4"].includes(file.type)) throw new Error("Media must be a JPG, PNG, or MP4 file");
   const url = URL.createObjectURL(file);
@@ -94,7 +94,10 @@ function AdDialog({
     const form = new FormData(event.currentTarget);
     try {
       const media = form.get("media");
-      if (media instanceof File) await validateAdvertisementMedia(media);
+      if (media instanceof File && media.name) await validateAdvertisementMedia(media);
+      if (!advertisement?.media?.url && (!(media instanceof File) || !media.name)) {
+        throw new Error("An advertisement image or MP4 video is required");
+      }
       form.set("categories", JSON.stringify(selectedCategories));
       mutation.mutate(form);
     } catch (error) {

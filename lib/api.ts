@@ -129,12 +129,16 @@ export async function getAdvertisements() {
 }
 
 export async function createAdvertisement(payload: FormData) {
-  const { data } = await api.post<ApiResponse<Advertisement>>("/admin/advertisements", payload);
+  const { data } = await api.post<ApiResponse<Advertisement>>("/admin/advertisements", payload, {
+    timeout: 120_000,
+  });
   return data;
 }
 
 export async function updateAdvertisement(id: string, payload: FormData | Partial<Pick<Advertisement, "title" | "description" | "isActive">>) {
-  const { data } = await api.patch<ApiResponse<Advertisement>>(`/admin/advertisements/${id}`, payload);
+  const { data } = await api.patch<ApiResponse<Advertisement>>(`/admin/advertisements/${id}`, payload, {
+    ...(payload instanceof FormData ? { timeout: 120_000 } : {}),
+  });
   return data;
 }
 
