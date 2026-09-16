@@ -37,7 +37,7 @@ const nameOf = (user: User) =>
 
 export default function VerificationPage() {
   const client = useQueryClient();
-  const [status, setStatus] = useState<"pending" | "verified" | "rejected">("pending");
+  const [status, setStatus] = useState<"all" | "pending" | "verified" | "rejected">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
@@ -150,12 +150,13 @@ export default function VerificationPage() {
         <select
           value={status}
           onChange={(event) => {
-            setStatus(event.target.value as "pending" | "verified" | "rejected");
+            setStatus(event.target.value as "all" | "pending" | "verified" | "rejected");
             setPage(1);
             setSelected([]);
           }}
           className="form-control w-auto"
         >
+          <option value="all">All</option>
           <option value="pending">Pending</option>
           <option value="verified">Verified</option>
           <option value="rejected">Rejected</option>
